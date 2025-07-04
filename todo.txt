@@ -1,0 +1,53 @@
+
+# Gemini OS - Future Updates & TODO List
+
+This file tracks potential features, improvements, and bug fixes for the Gemini OS project.
+
+## High Priority / Core Features
+- [ ] **File System Simulation**:
+  - [ ] Implement saving functionality in the Notepad app.
+  - [ ] Allow creating/deleting files in the "Documents" app.
+  - [ ] Make the "Trash Bin" functional (restore/permanently delete files).
+  - [ ] Persist file system state across sessions (using localStorage or IndexedDB).
+
+- [ ] **Multi-Window Support**:
+  - [ ] Allow multiple applications to be open in different windows simultaneously.
+  - [ ] Implement a z-index management system to handle window focus.
+  - [ ] Add a taskbar or dock to show and manage open applications.
+
+- [ ] **Window Management**:
+  - [ ] Make windows resizable from their corners/edges.
+  - [ ] Add minimize and maximize buttons to the window title bar.
+
+## UI/UX Enhancements
+- [ ] **Desktop Customization**:
+  - [ ] Allow changing the desktop wallpaper via the "Settings" app.
+  - [ ] Let users rearrange icons on the desktop.
+
+- [ ] **Theming**:
+  - [ ] Implement a dark/light mode toggle in Settings.
+  - [ ] Instruct the LLM to respect the current theme when generating UI.
+
+- [ ] **Accessibility Improvements**:
+  - [ ] Conduct a full a11y audit.
+  - [ ] Ensure all LLM-generated content consistently uses proper ARIA attributes.
+  - [ ] Add keyboard navigation for all UI elements, including window management.
+
+## New Applications
+- [ ] **Email Client**: A simple app to read/write mock emails.
+- [ ] **Music Player**: An app that can play a list of predefined (or user-provided) audio tracks.
+- [ ] **Calendar/Scheduler**: A basic calendar app to view dates and add events.
+
+## Performance & Architecture
+- [ ] **State Management Refinement**:
+  - [ ] Optimize the statefulness/caching logic for better performance with complex app states.
+  - [ ] Consider a more robust state management library if the app complexity grows.
+
+- [ ] **Code Quality & Testing**:
+  - [ ] Add unit tests for key components and services (e.g., `geminiService`).
+  - [ ] Implement end-to-end tests using a framework like Playwright or Cypress.
+  - [ ] Add more comprehensive error boundaries in React components.
+
+- [ ] **Streaming UX**:
+  - [ ] Improve the visual feedback for streaming content to make it feel more fluid.
+  - [ ] Show a more detailed loading state that perhaps hints at what is being generated.
