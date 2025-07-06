@@ -4,32 +4,41 @@
 */
 /* tslint:disable */
 import React, {useEffect, useState} from 'react';
+import { Theme } from '../types';
 
 interface ParametersPanelProps {
-  currentLength: number;
-  onUpdateHistoryLength: (newLength: number) => void; // Renamed for clarity
-  onClosePanel: () => void;
+  isOpen: boolean;
+  onClose: () => void;
+  currentMaxHistoryLength: number;
+  onUpdateHistoryLength: (newLength: number) => void;
   isStatefulnessEnabled: boolean;
-  onSetStatefulness: (enabled: boolean) => void; // Changed to accept a boolean
+  onSetStatefulness: (enabled: boolean) => void;
+  onMasterClose: () => void;
+  theme: Theme;
+  onThemeToggle: () => void;
 }
 
 export const ParametersPanel: React.FC<ParametersPanelProps> = ({
-  currentLength,
+  isOpen,
+  onClose,
+  currentMaxHistoryLength,
   onUpdateHistoryLength,
-  onClosePanel,
   isStatefulnessEnabled,
   onSetStatefulness,
+  onMasterClose,
+  theme,
+  onThemeToggle,
 }) => {
   // Local state for pending changes
   const [localHistoryLengthInput, setLocalHistoryLengthInput] =
-    useState<string>(currentLength.toString());
+    useState<string>(currentMaxHistoryLength.toString());
   const [localStatefulnessChecked, setLocalStatefulnessChecked] =
     useState<boolean>(isStatefulnessEnabled);
 
   // Update local state if props change (e.g., panel re-opened)
   useEffect(() => {
-    setLocalHistoryLengthInput(currentLength.toString());
-  }, [currentLength]);
+    setLocalHistoryLengthInput(currentMaxHistoryLength.toString());
+  }, [currentMaxHistoryLength]);
 
   useEffect(() => {
     setLocalStatefulnessChecked(isStatefulnessEnabled);
@@ -54,8 +63,8 @@ export const ParametersPanel: React.FC<ParametersPanelProps> = ({
       onUpdateHistoryLength(newLength);
     } else {
       alert('Please enter a number between 0 and 10 for history length.');
-      setLocalHistoryLengthInput(currentLength.toString()); // Revert local input to original prop on error
-      return; // Do not proceed to close if there's an error
+      setLocalHistoryLengthInput(currentMaxHistoryLength.toString());
+      return;
     }
 
     // Apply statefulness if it has changed
@@ -63,21 +72,46 @@ export const ParametersPanel: React.FC<ParametersPanelProps> = ({
       onSetStatefulness(localStatefulnessChecked);
     }
 
-    onClosePanel(); // Close the panel after applying settings
+    onClose();
   };
 
   const handleClose = () => {
-    // Reset local state to reflect original props before closing, ensuring no pending changes carry over visually if panel is quickly reopened
-    setLocalHistoryLengthInput(currentLength.toString());
+    setLocalHistoryLengthInput(currentMaxHistoryLength.toString());
     setLocalStatefulnessChecked(isStatefulnessEnabled);
-    onClosePanel();
+    onClose();
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="p-6 bg-gray-50 h-full flex flex-col items-start pt-8">
-      {/* Interaction History Row */}
+    <div 
+      className="p-6 h-full flex flex-col items-start pt-8"
+      style={{ backgroundColor: theme.backgroundColor, color: theme.textColor }}>
+      
+      <h2 className="text-xl font-bold mb-6">Settings</h2>
+
+      {/* Theme Section */}
       <div className="w-full max-w-md mb-6">
+        <h3 className="text-lg font-semibold mb-3">Appearance</h3>
         <div className="llm-row items-center">
+          <label className="llm-label whitespace-nowrap mr-3 flex-shrink-0">
+            Theme Mode:
+          </label>
+          <button
+            onClick={onThemeToggle}
+            className="llm-button"
+            style={{ backgroundColor: theme.primaryColor }}>
+            {theme.mode === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+          </button>
+        </div>
+      </div>
+
+      {/* System Section */}
+      <div className="w-full max-w-md mb-6">
+        <h3 className="text-lg font-semibold mb-3">System</h3>
+        
+        {/* Interaction History Row */}
+        <div className="llm-row items-center mb-4">
           <label
             htmlFor="maxHistoryLengthInput"
             className="llm-label whitespace-nowrap mr-3 flex-shrink-0"
@@ -95,10 +129,8 @@ export const ParametersPanel: React.FC<ParametersPanelProps> = ({
             aria-describedby="historyLengthHelpText"
           />
         </div>
-      </div>
 
-      {/* Statefulness Row */}
-      <div className="w-full max-w-md mb-4">
+        {/* Statefulness Row */}
         <div className="llm-row items-center">
           <label
             htmlFor="statefulnessCheckbox"
@@ -117,21 +149,36 @@ export const ParametersPanel: React.FC<ParametersPanelProps> = ({
         </div>
       </div>
 
+      {/* Help Text */}
+      <div className="w-full max-w-md mb-6 text-sm opacity-75">
+        <p id="historyLengthHelpText" className="mb-2">
+          <strong>History Length:</strong> Controls how many previous interactions are remembered (0-10).
+        </p>
+        <p id="statefulnessHelpText">
+          <strong>Statefulness:</strong> When enabled, app states are cached for faster navigation.
+        </p>
+      </div>
+
       {/* Action Buttons */}
       <div className="mt-6 w-full max-w-md flex justify-start gap-3">
-        {' '}
-        {/* Changed pt-2 to mt-6, justify-end to justify-start */}
         <button
           onClick={handleApplyParameters}
           className="llm-button"
+          style={{ backgroundColor: theme.primaryColor }}
           aria-label="Apply all parameter settings and close">
-          Apply Parameters
+          Apply Settings
         </button>
         <button
           onClick={handleClose}
           className="llm-button bg-gray-500 hover:bg-gray-600 active:bg-gray-700"
           aria-label="Close parameters panel without applying current changes">
-          Close Parameters
+          Cancel
+        </button>
+        <button
+          onClick={onMasterClose}
+          className="llm-button bg-red-500 hover:bg-red-600 active:bg-red-700"
+          aria-label="Close all applications and return to desktop">
+          Close All
         </button>
       </div>
     </div>
