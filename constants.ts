@@ -11,6 +11,7 @@ export const APP_DEFINITIONS_CONFIG: AppDefinition[] = [
   {id: 'notepad_app', name: 'Notepad', icon: '📝', color: '#fffde7'},
   {id: 'settings_app', name: 'Settings', icon: '⚙️', color: '#e7f3ff'},
   {id: 'trash_bin', name: 'Trash Bin', icon: '🗑️', color: '#ffebee'},
+  {id: 'wallpaper_manager', name: 'Wallpaper', icon: '🖼️', color: '#f3e5f5'},
   {id: 'web_browser_app', name: 'Web', icon: '🌐', color: '#e0f7fa'},
   {id: 'calculator_app', name: 'Calculator', icon: '🧮', color: '#f5f5f5'},
   {id: 'travel_app', name: 'Travel', icon: '✈️', color: '#e8f5e9'},
