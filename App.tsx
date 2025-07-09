@@ -14,16 +14,35 @@ import {generateImage, streamAppContent} from './services/geminiService';
 import {fileSystemService} from './services/fileSystemService';
 import {themeService} from './services/themeService';
 import {AppDefinition, InteractionData, WindowInstance, FileSystemState, Theme} from './types';
+import WallpaperManager from './features/WallpaperManager';
+
+const WALLPAPER_KEY = 'gemini-os-wallpaper';
+const ICON_POSITIONS_KEY = 'gemini-os-icon-positions';
 
 const DesktopView: React.FC<{
   onAppOpen: (app: AppDefinition) => void;
   theme: Theme;
-}> = ({onAppOpen, theme}) => (
+  wallpaper?: string | null;
+  iconPositions: Record<string, {x: number, y: number}>;
+  onSetIconPosition: (id: string, pos: {x: number, y: number}) => void;
+}> = ({onAppOpen, theme, wallpaper, iconPositions, onSetIconPosition}) => (
   <div 
     className="flex flex-wrap content-start p-4"
-    style={{ backgroundColor: theme.backgroundColor, color: theme.textColor }}>
+    style={{ 
+      backgroundColor: theme.backgroundColor, 
+      color: theme.textColor,
+      backgroundImage: wallpaper ? `url(${wallpaper})` : undefined,
+      backgroundSize: wallpaper ? 'cover' : undefined,
+      backgroundPosition: wallpaper ? 'center' : undefined,
+    }}>
     {APP_DEFINITIONS_CONFIG.map((app) => (
-      <Icon key={app.id} app={app} onInteract={() => onAppOpen(app)} />
+      <Icon 
+        key={app.id} 
+        app={app} 
+        onInteract={() => onAppOpen(app)} 
+        position={iconPositions[app.id] || { x: 100 + (APP_DEFINITIONS_CONFIG.indexOf(app) * 50), y: 100 + (APP_DEFINITIONS_CONFIG.indexOf(app) * 30) }}
+        onSetPosition={onSetIconPosition}
+      />
     ))}
   </div>
 );
@@ -57,6 +76,24 @@ const App: React.FC = () => {
   const [isStatefulnessEnabled, setIsStatefulnessEnabled] = useState<boolean>(false);
   const [appContentCache, setAppContentCache] = useState<Record<string, string>>({});
   const [currentAppPath, setCurrentAppPath] = useState<string[]>([]);
+
+  // Wallpaper state
+  const [wallpaper, setWallpaper] = useState<string | null>(() => {
+    return localStorage.getItem(WALLPAPER_KEY) || null;
+  });
+
+  const [iconPositions, setIconPositions] = useState<Record<string, {x: number, y: number}>>(() => {
+    const stored = localStorage.getItem(ICON_POSITIONS_KEY);
+    return stored ? JSON.parse(stored) : {};
+  });
+
+  const handleSetIconPosition = (id: string, pos: {x: number, y: number}) => {
+    setIconPositions(prev => {
+      const next = { ...prev, [id]: pos };
+      localStorage.setItem(ICON_POSITIONS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
 
   // Save file system when it changes
   useEffect(() => {
@@ -449,6 +486,16 @@ const App: React.FC = () => {
     appContentCache,
   ]);
 
+  // Wallpaper setter
+  const handleSetWallpaper = (dataUrl: string | null) => {
+    setWallpaper(dataUrl);
+    if (dataUrl) {
+      localStorage.setItem(WALLPAPER_KEY, dataUrl);
+    } else {
+      localStorage.removeItem(WALLPAPER_KEY);
+    }
+  };
+
   // Handle theme toggle
   const handleThemeToggle = useCallback(() => {
     const newTheme = themeService.toggleTheme(theme);
@@ -461,7 +508,7 @@ const App: React.FC = () => {
       style={{ backgroundColor: theme.backgroundColor, color: theme.textColor }}>
       {/* Desktop View */}
       {windows.length === 0 && (
-        <DesktopView onAppOpen={handleAppOpen} theme={theme} />
+        <DesktopView onAppOpen={handleAppOpen} theme={theme} wallpaper={wallpaper} iconPositions={iconPositions} onSetIconPosition={handleSetIconPosition} />
       )}
 
       {/* Windows */}
@@ -484,12 +531,16 @@ const App: React.FC = () => {
           size={window.size}
           zIndex={window.zIndex}
           onFocus={() => focusWindow(window.id)}>
-          <GeneratedContent
-            content={window.content}
-            isLoading={window.isLoading}
-            error={window.error}
-            onInteraction={(interactionData) => handleInteraction(interactionData, window.id)}
-          />
+          {window.appId === 'wallpaper_manager' ? (
+            <WallpaperManager onSetWallpaper={handleSetWallpaper} />
+          ) : (
+            <GeneratedContent
+              content={window.content}
+              isLoading={window.isLoading}
+              error={window.error}
+              onInteraction={(interactionData) => handleInteraction(interactionData, window.id)}
+            />
+          )}
         </Window>
       ))}
 
